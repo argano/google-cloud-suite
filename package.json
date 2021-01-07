@@ -1,0 +1,25 @@
+{
+  "name": "google-cloud-suite",
+  "version": "0.0.1",
+  "description": "A utilities for GCP",
+  "scripts": {
+    "postinstall": "lerna bootstrap",
+    "clean": "lerna clean --yes && lerna run clean",
+    "build:libs": "lerna run build --scope \"@google-cloud-suite/*\"",
+    "build": "run-s build:libs",
+    "test:libs": "lerna run test --scope \"@google-cloud-suite/*\"",
+    "test": "run-s test:libs"
+  },
+  "author": "Argano Inc.",
+  "license": "MIT",
+  "devDependencies": {
+    "lerna": "^3.20.2",
+    "npm-run-all": "^4.1.5"
+  },
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {
+  }
+}
