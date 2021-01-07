@@ -5,7 +5,7 @@ export interface InitParams {
 }
 
 // see: https://cloud.google.com/functions/docs/calling/storage
-export function handleStorageObjectCreated(params: InitParams): Function {
+export function handleStorageObjectCreated(params: InitParams = {}): Function {
     const metadataSuffix = params.metadataFileSuffix || ".metadata";
     function isTarget(eventType: string, file: string): boolean {
         if (eventType !== "google.storage.object.finalize") {
