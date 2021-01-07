@@ -38,9 +38,7 @@ export function handleStorageObjectCreated(params: InitParams = {}): Function {
         }
         try {
             const metadata = JSON.parse(metadataBuf.toString("utf-8"));
-            await sourceFile.setMetadata({
-                metadata
-            });
+            await sourceFile.setMetadata(metadata);
         } catch (e) {
             console.error(e);
         }
