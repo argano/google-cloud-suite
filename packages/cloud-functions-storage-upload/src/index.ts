@@ -14,6 +14,8 @@ export function handle(params: InitParams): Function {
     const { clientSecret, bucketName, keyPrefix } = params;
     return async (req: any, res: any) => {
         const { data, fileName, mimeType, secret } = req.body;
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
         if (clientSecret && clientSecret !== secret) {
             res.status(401).json({ message: "invalid secret" });
         }
