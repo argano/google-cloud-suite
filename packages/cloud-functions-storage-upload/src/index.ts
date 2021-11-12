@@ -13,6 +13,16 @@ export interface InitParams {
 export function handle(params: InitParams): Function {
     const { clientSecret, bucketName, keyPrefix } = params;
     return async (req: any, res: any) => {
+        if (req.method === "OPTIONS") {
+            // CORS support
+            res.set("Access-Control-Allow-Origin", "*");
+            res.set("Access-Control-Allow-Methods", "POST");
+            res.set("Access-Control-Allow-Headers", "Content-Type");
+            res.set("Access-Control-Max-Age", "3600");
+            res.status(204).send("");
+            return;
+        }
+
         const { data, fileName, mimeType, secret } = req.body;
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
