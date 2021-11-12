@@ -1,6 +1,6 @@
 {
   "name": "@google-cloud-suite/cloud-functions-storage-upload",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "@google-cloud-suite/cloud-functions-storage-upload",
   "main": "build/index.js",
   "files": [
