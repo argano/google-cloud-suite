@@ -6,11 +6,12 @@ import * as mime from "mime-types";
 export interface InitParams {
     clientSecret?: string;
     bucketName: string;
+    keyPrefix?: string;
 }
 
 // see: https://cloud.google.com/functions/docs/calling/storage
 export function handle(params: InitParams): Function {
-    const { clientSecret, bucketName } = params;
+    const { clientSecret, bucketName, keyPrefix } = params;
     return async (req: any, res: any) => {
         const { data, fileName, mimeType, secret } = req.body;
         if (clientSecret && clientSecret !== secret) {
@@ -46,12 +47,16 @@ export function handle(params: InitParams): Function {
                 return chunk[chunk.length - 1];
             }
         })();
-        const filePath = Date.now() + "/" + csprng(326, 36) + "/" + uuid.v4() + "." + ext;
+        const filePath = (keyPrefix || "") + Date.now() + "/" + csprng(326, 36) + "/" + uuid.v4() + "." + ext;
         await saveFile(filePath, Buffer.from(data, "base64"), mimeType);
         const file = bucket.file(filePath);
         await file.setMetadata({
             contentDisposition: `attachment;filename=${fileName};filename*=UTF-8''${encodeURIComponent(fileName)}`
         });
-        res.json({ message: "success", key: filePath });
+        res.json({
+            message: "success",
+            key: filePath,
+            publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + filePath
+        });
     };
 }
