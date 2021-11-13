@@ -23,7 +23,7 @@ export function handle(params: InitParams): Function {
             return;
         }
 
-        const { data, fileName, mimeType, secret } = req.body;
+        const { data, fileName, mimeType, secret, addContentDispositionAttachment } = req.body;
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
         if (clientSecret && clientSecret !== secret) {
@@ -61,10 +61,12 @@ export function handle(params: InitParams): Function {
         })();
         const filePath = (keyPrefix || "") + Date.now() + "/" + csprng(326, 36) + "/" + uuid.v4() + "." + ext;
         await saveFile(filePath, Buffer.from(data, "base64"), mimeType);
-        const file = bucket.file(filePath);
-        await file.setMetadata({
-            contentDisposition: `attachment;filename=${fileName};filename*=UTF-8''${encodeURIComponent(fileName)}`
-        });
+        if (addContentDispositionAttachment) {
+            const file = bucket.file(filePath);
+            await file.setMetadata({
+                contentDisposition: `attachment;filename=${fileName};filename*=UTF-8''${encodeURIComponent(fileName)}`
+            });
+        }
         res.json({
             message: "success",
             key: filePath,
