@@ -32,6 +32,7 @@ function handleFormData(params: InitParams, req: any, res: any): void {
 
     const fields: any = {};
     const busboy = new Busboy({ headers: req.headers });
+    let processedFilePath = "";
     busboy.on("field", (fieldName, value) => {
         fields[fieldName] = value;
     });
@@ -51,16 +52,17 @@ function handleFormData(params: InitParams, req: any, res: any): void {
                 message: "Failed to save file"
             });
         }).on("finish", () => {
-            res.json({
-                message: "success",
-                key: filePath,
-                publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + filePath
-            });
+            processedFilePath = filePath;
+            // nop
         });
         file.pipe(bucketFile.createWriteStream());
     });
     busboy.on("finish", () => {
-        console.log(`> finish`);
+        res.json({
+            message: "success",
+            key: processedFilePath,
+            publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + processedFilePath
+        });
     });
     busboy.end(req.rawBody);
 }
