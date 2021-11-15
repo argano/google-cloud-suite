@@ -1,6 +1,6 @@
 {
   "name": "@google-cloud-suite/cloud-functions-update-storage-metadata",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "@google-cloud-suite/cloud-functions-update-storage-metadata",
   "main": "build/index.js",
   "files": [
