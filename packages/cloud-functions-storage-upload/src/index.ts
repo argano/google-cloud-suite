@@ -46,22 +46,27 @@ function handleFormData(params: InitParams, req: any, res: any): void {
         }
         filePath = createKey(keyPrefix || "", fileName, mimeType);
         const bucketFile = bucket.file(filePath);
-        file.on("error", e => {
+        const stream = bucketFile.createWriteStream();
+        file.on("end", () => {
+            stream.end();
+        });
+        stream.on("error", e => {
             console.error(e);
             res.status(500).json({
                 message: "Failed to save file"
             });
-        }).on("finish", () => {
-            // nop
         });
-        file.pipe(bucketFile.createWriteStream());
+        stream.on("finish", () => {
+            res.json({
+                message: "success",
+                key: filePath,
+                publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + filePath
+            });
+        });
+        file.pipe(stream);
     });
     busboy.on("finish", () => {
-        res.json({
-            message: "success",
-            key: filePath,
-            publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + filePath
-        });
+        // nop
     });
     busboy.end(req.rawBody);
 }
