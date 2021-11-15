@@ -121,7 +121,7 @@ export function handle(params: InitParams): Function {
             res.status(204).send("");
             return;
         }
-        if (req.get("content-type").indexOf("multipart/formdata") === 0) {
+        if (req.get("content-type").indexOf("multipart/form-data") === 0) {
             return handleFormData(params, req, res);
         } else {
             return handleJSON(params, req, res);
