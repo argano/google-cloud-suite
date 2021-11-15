@@ -47,7 +47,11 @@ function handleFormData(params: InitParams, req: any, res: any): void {
         const contentDisposition = fields["contentDisposition"];
         filePath = createKey(keyPrefix || "", fileName, mimeType);
         const bucketFile = bucket.file(filePath);
-        const stream = bucketFile.createWriteStream();
+        const stream = bucketFile.createWriteStream({
+            metadata: {
+                contentType: mimeType
+            }
+        });
         file.on("end", () => {
             stream.end();
         });
