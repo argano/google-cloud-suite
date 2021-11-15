@@ -32,7 +32,7 @@ function handleFormData(params: InitParams, req: any, res: any): void {
 
     const fields: any = {};
     const busboy = new Busboy({ headers: req.headers });
-    let processedFilePath = "";
+    let filePath = "";
     busboy.on("field", (fieldName, value) => {
         fields[fieldName] = value;
     });
@@ -44,7 +44,7 @@ function handleFormData(params: InitParams, req: any, res: any): void {
             });
             return;
         }
-        const filePath = createKey(keyPrefix || "", fileName, mimeType);
+        filePath = createKey(keyPrefix || "", fileName, mimeType);
         const bucketFile = bucket.file(filePath);
         file.on("error", e => {
             console.error(e);
@@ -52,7 +52,6 @@ function handleFormData(params: InitParams, req: any, res: any): void {
                 message: "Failed to save file"
             });
         }).on("finish", () => {
-            processedFilePath = filePath;
             // nop
         });
         file.pipe(bucketFile.createWriteStream());
@@ -60,8 +59,8 @@ function handleFormData(params: InitParams, req: any, res: any): void {
     busboy.on("finish", () => {
         res.json({
             message: "success",
-            key: processedFilePath,
-            publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + processedFilePath
+            key: filePath,
+            publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + filePath
         });
     });
     busboy.end(req.rawBody);
