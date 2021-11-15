@@ -12,7 +12,10 @@ npm install @google-cloud-suite/cloud-functions-cloud-functions-storage-upload
 
 You can use `handle(params?: InitParams)` to initialize trigger. The followings are the property of InitParams:
 
+- bucketName: string
 - clientSecret?: string
+  - defaults: `undefined`
+- keyPrefix?: string
   - defaults: `undefined`
 
 Examples:
