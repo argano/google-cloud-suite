@@ -44,6 +44,7 @@ function handleFormData(params: InitParams, req: any, res: any): void {
             });
             return;
         }
+        const contentDisposition = fields["contentDisposition"];
         filePath = createKey(keyPrefix || "", fileName, mimeType);
         const bucketFile = bucket.file(filePath);
         const stream = bucketFile.createWriteStream();
@@ -53,14 +54,26 @@ function handleFormData(params: InitParams, req: any, res: any): void {
         stream.on("error", e => {
             console.error(e);
             res.status(500).json({
-                message: "Failed to save file"
+                message: "Failed to save file(stream error)"
             });
         });
         stream.on("finish", () => {
-            res.json({
-                message: "success",
-                key: filePath,
-                publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + filePath
+            (async () => {
+                if (contentDisposition && (contentDisposition === "inline" || contentDisposition === "attachment")) {
+                    const file = bucket.file(filePath);
+                    await file.setMetadata({
+                        contentDisposition: `${contentDisposition};filename=${fileName};filename*=UTF-8''${encodeURIComponent(fileName)}`
+                    });
+                }
+                res.json({
+                    message: "success",
+                    key: filePath,
+                    publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + filePath
+                });
+            })().catch(() => {
+                res.status(500).json({
+                    message: "Failed to save file(finalize error)"
+                });
             });
         });
         file.pipe(stream);
@@ -73,7 +86,7 @@ function handleFormData(params: InitParams, req: any, res: any): void {
 
 async function handleJSON(params: InitParams, req: any, res: any): Promise<void> {
     const { clientSecret, bucketName, keyPrefix } = params;
-    const { data, fileName, mimeType, secret, addContentDispositionAttachment } = req.body;
+    const { data, fileName, mimeType, secret, contentDisposition } = req.body;
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     if (clientSecret && clientSecret !== secret) {
@@ -102,10 +115,10 @@ async function handleJSON(params: InitParams, req: any, res: any): Promise<void>
     };
     const filePath = createKey(keyPrefix || "", fileName, mimeType);
     await saveFile(filePath, Buffer.from(data, "base64"), mimeType);
-    if (addContentDispositionAttachment) {
+    if (contentDisposition && (contentDisposition === "inline" || contentDisposition === "attachment")) {
         const file = bucket.file(filePath);
         await file.setMetadata({
-            contentDisposition: `attachment;filename=${fileName};filename*=UTF-8''${encodeURIComponent(fileName)}`
+            contentDisposition: `${contentDisposition};filename=${fileName};filename*=UTF-8''${encodeURIComponent(fileName)}`
         });
     }
     res.json({
