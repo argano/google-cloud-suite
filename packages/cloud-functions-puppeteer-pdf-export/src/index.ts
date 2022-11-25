@@ -8,6 +8,11 @@ export interface InitParams {
     keyPrefix?: string;
 }
 
+export interface Body {
+    url: string;
+    contentDisposition?: string;
+    fileName?: string;
+}
 // see: https://cloud.google.com/functions/docs/writing/write-http-functions
 export function handle(params: InitParams): Function {
     return async (req: any, res: any) => {
@@ -29,7 +34,8 @@ export function handle(params: InitParams): Function {
                 "--no-zygote"
             ]
         });
-        const targetUrl = req.body.url;
+        const body: Body = req.body;
+        const targetUrl = body.url;
         if (clientSecret && clientSecret !== req.body.secret) {
             req.status(403).json({
                 message: "invalid secret"
@@ -54,7 +60,7 @@ export function handle(params: InitParams): Function {
                 printBackground: true,
                 format: "A4"
             });
-            const bucketFilePath = (keyPrefix || "") + Date.now() + "/" + csprng(326, 36) + "/" + uuid.v4() + ".pdf";
+            const bucketFilePath = (keyPrefix || "") + Date.now() + "/" + csprng(326, 36) + "/" + (body.fileName || uuid.v4() + ".pdf");
 
             const bucketFile = bucket.file(bucketFilePath);
             await bucketFile.save(pdf, {
@@ -62,6 +68,11 @@ export function handle(params: InitParams): Function {
                     contentType: "application/pdf"
                 }
             });
+            if (body.contentDisposition && (body.contentDisposition === "inline" || body.contentDisposition === "attachment") && body.fileName) {
+                await bucketFile.setMetadata({
+                    contentDisposition: `${body.contentDisposition};filename=${body.fileName};filename*=UTF-8''${encodeURIComponent(body.fileName)}`
+                });
+            }
             publicUrl = "https://storage.googleapis.com/" + bucketName + "/" + bucketFilePath;
         } finally {
             await browser.close();
