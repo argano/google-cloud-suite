@@ -23,12 +23,6 @@ export function handle(params: InitParams): Function {
         const storage = new gcs.Storage();
         const bucket = storage.bucket(bucketName);
         const body: RequestBody = req.body;
-        if (!body.outputPath) {
-            res.status(400).json({
-                message: "invalid outputPath"
-            });
-            return;
-        }
         if (!(body.inputs && body.inputs.length)) {
             res.status(400).json({
                 message: "invalid inputs"
