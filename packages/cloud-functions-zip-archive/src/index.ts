@@ -46,7 +46,9 @@ export function handle(params: InitParams): Function {
         const writeStream = bucket.file(body.outputPath).createWriteStream();
         archive.pipe(writeStream);
         await archive.finalize();
+        const publicUrl = "https://storage.googleapis.com/" + bucketName + "/" + body.outputPath;
         res.status(200).json({
+            publicUrl: publicUrl,
             outputPath: body.outputPath
         });
     };

@@ -44,6 +44,7 @@ export function handle(params: InitParams): Function {
         }
         let status = -1;
         let publicUrl = "";
+        let path = "";
         try {
             const page = await browser.newPage();
             page.on("response", response => {
@@ -74,13 +75,15 @@ export function handle(params: InitParams): Function {
                 });
             }
             publicUrl = "https://storage.googleapis.com/" + bucketName + "/" + bucketFilePath;
+            path = bucketFilePath;
         } finally {
             await browser.close();
         }
 
         res.status(200).json({
             status,
-            publicUrl
+            publicUrl,
+            path
         });
     };
 }
