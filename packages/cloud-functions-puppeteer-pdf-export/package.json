@@ -1,6 +1,6 @@
 {
   "name": "@google-cloud-suite/cloud-functions-puppeteer-pdf-export",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "@google-cloud-suite/cloud-functions-puppeteer-pdf-export",
   "main": "build/index.js",
   "files": [

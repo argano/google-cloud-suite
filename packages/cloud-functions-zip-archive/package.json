@@ -1,6 +1,6 @@
 {
   "name": "@google-cloud-suite/cloud-functions-zip-archive",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "@google-cloud-suite/cloud-functions-zip-archive",
   "main": "build/index.js",
   "files": [
