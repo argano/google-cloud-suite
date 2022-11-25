@@ -1,12 +1,16 @@
 import * as gcs from "@google-cloud/storage";
 import archiver from "archiver";
+import csprng from "csprng";
+import * as uuid from "uuid";
+
 export interface InitParams {
     bucketName: string;
     clientSecret?: string;
+    keyPrefix?: string;
 }
 
 export interface RequestBody {
-    outputPath: string;
+    outputPath?: string;
     inputs: {
         path: string;
         archiveName: string;
@@ -15,7 +19,7 @@ export interface RequestBody {
 // see: https://cloud.google.com/functions/docs/writing/write-http-functions
 export function handle(params: InitParams): Function {
     return async (req: any, res: any) => {
-        const { clientSecret, bucketName } = params;
+        const { clientSecret, bucketName, keyPrefix } = params;
         const storage = new gcs.Storage();
         const bucket = storage.bucket(bucketName);
         const body: RequestBody = req.body;
@@ -43,13 +47,15 @@ export function handle(params: InitParams): Function {
         body.inputs.forEach(input => {
             archive.append(bucket.file(input.path).createReadStream(), { name: input.archiveName });
         });
-        const writeStream = bucket.file(body.outputPath).createWriteStream();
+        const bucketFilePath = (keyPrefix || "") + (body.outputPath || Date.now() + "/" + csprng(326, 36) + "/" + uuid.v4() + ".zip");
+
+        const writeStream = bucket.file(bucketFilePath).createWriteStream();
         archive.pipe(writeStream);
         await archive.finalize();
-        const publicUrl = "https://storage.googleapis.com/" + bucketName + "/" + body.outputPath;
+        const publicUrl = "https://storage.googleapis.com/" + bucketName + "/" + bucketFilePath;
         res.status(200).json({
             publicUrl: publicUrl,
-            outputPath: body.outputPath
+            outputPath: bucketFilePath
         });
     };
 }
