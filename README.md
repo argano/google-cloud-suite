@@ -1,3 +1,3 @@
 # google-cloud-suite
 
-A utilities for GCP
+Utilities for GCP
