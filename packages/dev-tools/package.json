@@ -1,9 +1,8 @@
 {
   "name": "@google-cloud-suite/dev-tools",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "description": "@google-cloud-suite/dev-tools",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "Argano Inc.",
   "license": "MIT",
   "devDependencies": {
@@ -16,8 +15,6 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^1.18.2",
     "typescript": "~4.9.4"
-  },
-  "dependencies": {
   },
   "private": true
 }
