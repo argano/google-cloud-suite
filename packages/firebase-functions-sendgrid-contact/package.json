@@ -1,7 +1,7 @@
 {
-  "name": "@google-cloud-suite/cloud-functions-zip-archive",
+  "name": "@google-cloud-suite/firebase-functions-sendgrid-contact",
   "version": "0.0.26",
-  "description": "@google-cloud-suite/cloud-functions-zip-archive",
+  "description": "@google-cloud-suite/firebase-functions-sendgrid-contact",
   "main": "build/index.js",
   "files": [
     "build"
@@ -16,16 +16,12 @@
   "author": "Argano Inc.",
   "license": "MIT",
   "devDependencies": {
-    "@google-cloud-suite/dev-tools": "0.0.26",
-    "@types/archiver": "^5.3.1",
-    "@typescript-eslint/eslint-plugin": "^2.27.0",
-    "@typescript-eslint/parser": "^2.27.0"
+    "@google-cloud-suite/dev-tools": "0.0.26"
   },
   "dependencies": {
-    "@google-cloud/storage": "^4.5.0",
-    "archiver": "^5.3.1",
-    "csprng": "^0.1.2",
-    "uuid": "^8.3.2"
+    "@sendgrid/mail": "^7.7.0",
+    "firebase-admin": "^11.0.0",
+    "firebase-functions": "^4.1.0"
   },
   "typings": "build/index.d.ts",
   "publishConfig": {
