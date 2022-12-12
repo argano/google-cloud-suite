@@ -31,7 +31,7 @@ export function handle(params: InitParams): Function {
             if (params.reply && replyBody && replyTo) {
                 await sendGrid.send({
                     from: params.emailFrom,
-                    to: params.emailTo,
+                    to: replyTo,
                     subject: params.reply.subject,
                     text: replyBody
                 });
