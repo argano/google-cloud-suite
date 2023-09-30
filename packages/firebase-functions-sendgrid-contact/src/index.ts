@@ -8,15 +8,15 @@ export interface InitParams {
     apiKey: string;
     emailFrom: string;
     emailTo: string;
-    subject: string;
+    defaultSubject?: string;
     reply?: {
-        subject: string;
+        defaultSubject?: string;
     };
 }
 
 export function handle(params: InitParams): Function {
     return functions.https.onCall(async data => {
-        const { body, replyBody, replyTo } = data;
+        const { body, subject, replyBody, replyTo, replySubject } = data;
         if (!body) {
             throw new functions.https.HttpsError("invalid-argument", "missing email/name/body");
         }
@@ -25,14 +25,14 @@ export function handle(params: InitParams): Function {
             await sendGrid.send({
                 from: params.emailFrom,
                 to: params.emailTo,
-                subject: params.subject,
+                subject: subject || params.defaultSubject || "",
                 text: body
             });
             if (params.reply && replyBody && replyTo) {
                 await sendGrid.send({
                     from: params.emailFrom,
                     to: replyTo,
-                    subject: params.reply.subject,
+                    subject: replySubject || params.reply.defaultSubject || "",
                     text: replyBody
                 });
             }
