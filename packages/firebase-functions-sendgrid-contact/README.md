@@ -15,9 +15,9 @@ You can use `handle(params?: InitParams)` to initialize trigger. The followings 
 - apiKey: string
 - emailFrom: string
 - emailTo: string
-- subject: string
-- reply?: { subject: string }
-  - defaults: `undefined`
+- defaultSubject?: string
+- reply?: { defaultSubject?: string }
+  - if `reply` is not set, reply message is not sent.
 
 Examples:
 
@@ -28,7 +28,8 @@ exports.createContact = sendgridContact.handle({
    apiKey: "sgapikey",
    emailFrom: "no-reply@example.org",
    emailTo: "you@example.org",
-   reply: { subject: "Thank you for your contact!" }
+   defaultSubject: "Message from customer",
+   reply: { defaultSubject: "Thank you for your contact!" }
 });
 ```
 
@@ -40,7 +41,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 const functions = getFunctions();
 const createContact = httpsCallable(functions, "createContact");
 
-contact body = "Hello, I have a quetion.";
+contact body = "Hello, I have a question.";
 createContact({ body })
   .then((result) => {
     alert("success");
