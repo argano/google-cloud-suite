@@ -1,6 +1,6 @@
 {
   "name": "@google-cloud-suite/firebase-functions-sendgrid-contact",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "description": "@google-cloud-suite/firebase-functions-sendgrid-contact",
   "main": "build/index.js",
   "files": [
@@ -16,7 +16,7 @@
   "author": "Argano Inc.",
   "license": "MIT",
   "devDependencies": {
-    "@google-cloud-suite/dev-tools": "^0.0.29"
+    "@google-cloud-suite/dev-tools": "^0.0.30"
   },
   "dependencies": {
     "@sendgrid/mail": "^7.7.0",
