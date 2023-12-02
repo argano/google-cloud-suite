@@ -36,6 +36,7 @@ exports.createContact = sendgridContact.handle({
 3. Call function
 
 - body: string
+- subject?: string
 - attachments?: AttachmentData[]
   - AttachmentData
     - content: string
@@ -46,6 +47,8 @@ exports.createContact = sendgridContact.handle({
   - see: https://github.com/sendgrid/sendgrid-nodejs/blob/main/docs/use-cases/attachments.md
 - replyBody?: string
 - replyTo?: string
+- replySubject?: string;
+
 ```
 import { getFunctions, httpsCallable } from "firebase/functions";
 
