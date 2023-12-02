@@ -35,6 +35,17 @@ exports.createContact = sendgridContact.handle({
 
 3. Call function
 
+- body: string
+- attachments?: AttachmentData[]
+  - AttachmentData
+    - content: string
+    - filename: string
+    - type?: string
+    - disposition?: string
+    - contentId?: string
+  - see: https://github.com/sendgrid/sendgrid-nodejs/blob/main/docs/use-cases/attachments.md
+- replyBody?: string
+- replyTo?: string
 ```
 import { getFunctions, httpsCallable } from "firebase/functions";
 
