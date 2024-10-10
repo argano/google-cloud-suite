@@ -15,8 +15,8 @@ export interface InitParams {
 }
 
 export function handle(params: InitParams): Function {
-    return functions.https.onCall(async data => {
-        const { body, subject, replyBody, replyTo, replySubject, attachments } = data;
+    return functions.https.onCall(async req => {
+        const { body, subject, replyBody, replyTo, replySubject, attachments } = req.data;
         if (!body) {
             throw new functions.https.HttpsError("invalid-argument", "missing email/name/body");
         }
