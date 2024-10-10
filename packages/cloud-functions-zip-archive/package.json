@@ -30,5 +30,6 @@
   "typings": "build/index.d.ts",
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "gitHead": "4be330d9f8bda014469f4fb57ecb163d4b68360e"
 }
