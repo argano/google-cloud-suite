@@ -1,6 +1,6 @@
 {
   "name": "@google-cloud-suite/cloud-functions-update-storage-metadata",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "description": "@google-cloud-suite/cloud-functions-update-storage-metadata",
   "main": "build/index.js",
   "files": [
@@ -16,7 +16,7 @@
   "author": "Argano Inc.",
   "license": "MIT",
   "devDependencies": {
-    "@google-cloud-suite/dev-tools": "^0.0.35"
+    "@google-cloud-suite/dev-tools": "^0.0.36"
   },
   "dependencies": {
     "@google-cloud/storage": "^4.5.0"
