@@ -15,7 +15,7 @@ export interface InitParams {
 }
 
 export function handle(params: InitParams): Function {
-    return functions.https.onCall(async req => {
+    return functions.https.onCall(async (req) => {
         const { body, subject, replyBody, replyTo, replySubject, attachments } = req.data;
         if (!body) {
             throw new functions.https.HttpsError("invalid-argument", "missing email/name/body");
@@ -27,14 +27,14 @@ export function handle(params: InitParams): Function {
                 to: params.emailTo,
                 subject: subject || params.defaultSubject || "",
                 text: body,
-                attachments: attachments
+                attachments: attachments,
             });
             if (params.reply && replyBody && replyTo) {
                 await sendGrid.send({
                     from: params.emailFrom,
                     to: replyTo,
                     subject: replySubject || params.reply.defaultSubject || "",
-                    text: replyBody
+                    text: replyBody,
                 });
             }
         } catch (e) {

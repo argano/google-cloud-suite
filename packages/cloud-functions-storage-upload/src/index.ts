@@ -2,7 +2,7 @@ import * as gcs from "@google-cloud/storage";
 import csprng from "csprng";
 import * as uuid from "uuid";
 import * as mime from "mime-types";
-import Busboy from "busboy";
+import busboy from "busboy";
 
 export interface InitParams {
     clientSecret?: string;
@@ -31,16 +31,18 @@ function handleFormData(params: InitParams, req: any, res: any): void {
     const bucket = storage.bucket(bucketName);
 
     const fields: any = {};
-    const busboy = new Busboy({ headers: req.headers });
+    const bb = busboy({ headers: req.headers });
     let filePath = "";
-    busboy.on("field", (fieldName, value) => {
+    bb.on("field", (fieldName, value) => {
         fields[fieldName] = value;
     });
-    busboy.on("file", (_1, file, fileName, _2, mimeType) => {
+    bb.on("file", (_name, file, info) => {
+        const fileName = info.filename;
+        const mimeType = info.mimeType;
         if (clientSecret && fields["secret"] !== clientSecret) {
-            req.unpipe(busboy);
+            req.unpipe(bb);
             res.status(400).json({
-                message: "Invalid secret(set secret before file)"
+                message: "Invalid secret(set secret before file)",
             });
             return;
         }
@@ -49,16 +51,16 @@ function handleFormData(params: InitParams, req: any, res: any): void {
         const bucketFile = bucket.file(filePath);
         const stream = bucketFile.createWriteStream({
             metadata: {
-                contentType: mimeType
-            }
+                contentType: mimeType,
+            },
         });
         file.on("end", () => {
             stream.end();
         });
-        stream.on("error", e => {
+        stream.on("error", (e) => {
             console.error(e);
             res.status(500).json({
-                message: "Failed to save file(stream error)"
+                message: "Failed to save file(stream error)",
             });
         });
         stream.on("finish", () => {
@@ -66,26 +68,26 @@ function handleFormData(params: InitParams, req: any, res: any): void {
                 if (contentDisposition && (contentDisposition === "inline" || contentDisposition === "attachment")) {
                     const file = bucket.file(filePath);
                     await file.setMetadata({
-                        contentDisposition: `${contentDisposition};filename=${fileName};filename*=UTF-8''${encodeURIComponent(fileName)}`
+                        contentDisposition: `${contentDisposition};filename=${fileName};filename*=UTF-8''${encodeURIComponent(fileName)}`,
                     });
                 }
                 res.json({
                     message: "success",
                     key: filePath,
-                    publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + filePath
+                    publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + filePath,
                 });
             })().catch(() => {
                 res.status(500).json({
-                    message: "Failed to save file(finalize error)"
+                    message: "Failed to save file(finalize error)",
                 });
             });
         });
         file.pipe(stream);
     });
-    busboy.on("finish", () => {
+    bb.on("close", () => {
         // nop
     });
-    busboy.end(req.rawBody);
+    bb.end(req.rawBody);
 }
 
 async function handleJSON(params: InitParams, req: any, res: any): Promise<void> {
@@ -104,11 +106,11 @@ async function handleJSON(params: InitParams, req: any, res: any): Promise<void>
         return new Promise<void>((resolve, reject) => {
             const stream = bucket.file(key).createWriteStream({
                 metadata: {
-                    contentType: mimeType
+                    contentType: mimeType,
                 },
-                resumable: false
+                resumable: false,
             });
-            stream.on("error", err => {
+            stream.on("error", (err) => {
                 reject(err);
             });
             stream.on("finish", () => {
@@ -122,13 +124,13 @@ async function handleJSON(params: InitParams, req: any, res: any): Promise<void>
     if (contentDisposition && (contentDisposition === "inline" || contentDisposition === "attachment")) {
         const file = bucket.file(filePath);
         await file.setMetadata({
-            contentDisposition: `${contentDisposition};filename=${fileName};filename*=UTF-8''${encodeURIComponent(fileName)}`
+            contentDisposition: `${contentDisposition};filename=${fileName};filename*=UTF-8''${encodeURIComponent(fileName)}`,
         });
     }
     res.json({
         message: "success",
         key: filePath,
-        publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + filePath
+        publicUrl: "https://storage.googleapis.com/" + bucketName + "/" + filePath,
     });
 }
 
