@@ -6,7 +6,7 @@
     "clean": "lerna clean --yes && lerna run clean",
     "build:libs": "lerna run build --scope \"@google-cloud-suite/*\"",
     "build": "run-s build:libs",
-    "test:libs": "lerna run test --scope \"@google-cloud-suite/*\"",
+    "test:libs": "lerna run test --concurrency 1 --scope \"@google-cloud-suite/*\"",
     "test": "run-s test:libs"
   },
   "author": "Argano Inc.",
@@ -24,11 +24,15 @@
   "resolutions": {
     "@tootallnate/once": "^3.0.1",
     "yaml": "^2.8.3",
-    "brace-expansion": "^5.0.6"
+    "brace-expansion": "^5.0.6",
+    "uuid": "^11.1.1",
+    "tmp": "^0.2.6"
   },
   "overrides": {
     "@tootallnate/once": "^3.0.1",
     "yaml": "^2.8.3",
-    "brace-expansion": "^5.0.6"
+    "brace-expansion": "^5.0.6",
+    "uuid": "^11.1.1",
+    "tmp": "^0.2.6"
   }
 }

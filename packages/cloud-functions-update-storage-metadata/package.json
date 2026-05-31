@@ -10,7 +10,8 @@
     "clean": "del-cli build",
     "lint": "eslint \"./src/**/*.ts\"",
     "lint:fix": "run-s \"lint --fix\"",
-    "test": "run-s build lint",
+    "test:unit": "vitest run",
+    "test": "run-s build lint test:unit",
     "build": "tsc"
   },
   "author": "Argano Inc.",
