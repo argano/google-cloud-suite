@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      - name: Start fake-gcs-server
+        run: |
+          docker run -d --name fake-gcs -p 4443:4443 \
+            fsouza/fake-gcs-server:1.52.2 \
+            -scheme http -host 0.0.0.0 -port 4443 -public-host localhost:4443 -backend memory
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:4443/storage/v1/b >/dev/null; then
+              echo "fake-gcs ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "fake-gcs did not become ready"
+          docker logs fake-gcs
+          exit 1
+
+      - name: Test
+        env:
+          GCS_EMULATOR_HOST: http://localhost:4443
+        run: yarn test
+
+      - name: Dump fake-gcs logs on failure
+        if: failure()
+        run: docker logs fake-gcs
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      - name: yarn audit
+        run: yarn audit
+
+      - name: npm audit
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm audit

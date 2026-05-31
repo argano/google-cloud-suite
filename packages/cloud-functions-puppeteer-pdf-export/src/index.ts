@@ -31,14 +31,14 @@ export function handle(params: InitParams): Function {
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
                 "--disable-dev-shm-usage",
-                "--no-zygote"
-            ]
+                "--no-zygote",
+            ],
         });
         const body: Body = req.body;
         const targetUrl = body.url;
         if (clientSecret && clientSecret !== req.body.secret) {
             req.status(403).json({
-                message: "invalid secret"
+                message: "invalid secret",
             });
             return;
         }
@@ -47,31 +47,31 @@ export function handle(params: InitParams): Function {
         let path = "";
         try {
             const page = await browser.newPage();
-            page.on("response", response => {
+            page.on("response", (response) => {
                 if (response.url() === targetUrl) {
                     status = response.status();
                 }
             });
             await page.goto(targetUrl, {
                 waitUntil: ["load", "networkidle0"],
-                timeout: 60 * 1000
+                timeout: 60 * 1000,
             });
             const pdf = await page.pdf({
                 landscape: true,
                 printBackground: true,
-                format: "A4"
+                format: "A4",
             });
             const bucketFilePath = (keyPrefix || "") + Date.now() + "/" + csprng(326, 36) + "/" + (body.fileName || uuid.v4() + ".pdf");
 
             const bucketFile = bucket.file(bucketFilePath);
             await bucketFile.save(pdf, {
                 metadata: {
-                    contentType: "application/pdf"
-                }
+                    contentType: "application/pdf",
+                },
             });
             if (body.contentDisposition && (body.contentDisposition === "inline" || body.contentDisposition === "attachment") && body.fileName) {
                 await bucketFile.setMetadata({
-                    contentDisposition: `${body.contentDisposition};filename=${body.fileName};filename*=UTF-8''${encodeURIComponent(body.fileName)}`
+                    contentDisposition: `${body.contentDisposition};filename=${body.fileName};filename*=UTF-8''${encodeURIComponent(body.fileName)}`,
                 });
             }
             publicUrl = "https://storage.googleapis.com/" + bucketName + "/" + bucketFilePath;
@@ -83,7 +83,7 @@ export function handle(params: InitParams): Function {
         res.status(200).json({
             status,
             publicUrl,
-            path
+            path,
         });
     };
 }

@@ -10,7 +10,8 @@
     "clean": "del-cli build",
     "lint": "eslint \"./src/**/*.ts\"",
     "lint:fix": "run-s \"lint --fix\"",
-    "test": "run-s build lint",
+    "test:unit": "vitest run",
+    "test": "run-s build lint test:unit",
     "build": "tsc"
   },
   "author": "Argano Inc.",
@@ -18,13 +19,13 @@
   "devDependencies": {
     "@google-cloud-suite/dev-tools": "^0.0.37",
     "@types/csprng": "^0.1.1",
-    "@types/uuid": "^8.3.1"
+    "@types/uuid": "^10.0.0"
   },
   "dependencies": {
-    "@google-cloud/storage": "^4.5.0",
+    "@google-cloud/storage": "^7.14.0",
     "csprng": "^0.1.2",
-    "puppeteer": "^18.0.0",
-    "uuid": "^8.3.2"
+    "puppeteer": "^24.0.0",
+    "uuid": "^11.0.3"
   },
   "typings": "build/index.d.ts",
   "publishConfig": {

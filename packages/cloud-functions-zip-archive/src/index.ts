@@ -25,20 +25,20 @@ export function handle(params: InitParams): Function {
         const body: RequestBody = req.body;
         if (!(body.inputs && body.inputs.length)) {
             res.status(400).json({
-                message: "invalid inputs"
+                message: "invalid inputs",
             });
             return;
         }
         if (clientSecret && clientSecret !== req.body.secret) {
             req.status(403).json({
-                message: "invalid secret"
+                message: "invalid secret",
             });
             return;
         }
         const archive = archiver("zip", {
-            zlib: { level: 9 } // Sets the compression level.
+            zlib: { level: 9 }, // Sets the compression level.
         });
-        body.inputs.forEach(input => {
+        body.inputs.forEach((input) => {
             archive.append(bucket.file(input.path).createReadStream(), { name: input.archiveName });
         });
         const bucketFilePath = (keyPrefix || "") + (body.outputPath || Date.now() + "/" + csprng(326, 36) + "/" + uuid.v4() + ".zip");
@@ -49,7 +49,7 @@ export function handle(params: InitParams): Function {
         const publicUrl = "https://storage.googleapis.com/" + bucketName + "/" + bucketFilePath;
         res.status(200).json({
             publicUrl: publicUrl,
-            outputPath: bucketFilePath
+            outputPath: bucketFilePath,
         });
     };
 }

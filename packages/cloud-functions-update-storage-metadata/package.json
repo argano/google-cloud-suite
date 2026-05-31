@@ -10,7 +10,8 @@
     "clean": "del-cli build",
     "lint": "eslint \"./src/**/*.ts\"",
     "lint:fix": "run-s \"lint --fix\"",
-    "test": "run-s build lint",
+    "test:unit": "vitest run",
+    "test": "run-s build lint test:unit",
     "build": "tsc"
   },
   "author": "Argano Inc.",
@@ -19,7 +20,7 @@
     "@google-cloud-suite/dev-tools": "^0.0.37"
   },
   "dependencies": {
-    "@google-cloud/storage": "^4.5.0"
+    "@google-cloud/storage": "^7.14.0"
   },
   "typings": "build/index.d.ts",
   "publishConfig": {

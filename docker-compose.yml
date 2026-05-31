@@ -1,0 +1,16 @@
+services:
+  fake-gcs:
+    image: fsouza/fake-gcs-server:1.52.2
+    command:
+      - -scheme=http
+      - -host=0.0.0.0
+      - -port=4443
+      - -public-host=localhost:4443
+      - -backend=memory
+    ports:
+      - "4443:4443"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:4443/storage/v1/b"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
