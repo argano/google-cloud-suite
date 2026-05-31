@@ -1,0 +1,32 @@
+{
+  "name": "@google-cloud-suite/firebase-functions-gmail-api-contact",
+  "version": "0.0.37",
+  "description": "@google-cloud-suite/firebase-functions-gmail-api-contact",
+  "main": "build/index.js",
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "clean": "del-cli build",
+    "lint": "eslint \"./src/**/*.ts\"",
+    "lint:fix": "run-s \"lint --fix\"",
+    "test:unit": "vitest run",
+    "test": "run-s build lint test:unit",
+    "build": "tsc"
+  },
+  "author": "Argano Inc.",
+  "license": "MIT",
+  "devDependencies": {
+    "@google-cloud-suite/dev-tools": "^0.0.37"
+  },
+  "dependencies": {
+    "@google-cloud/secret-manager": "^6.1.2",
+    "firebase-admin": "^13.0.1",
+    "firebase-functions": "^6.1.1",
+    "googleapis": "^173.0.0"
+  },
+  "typings": "build/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  }
+}
