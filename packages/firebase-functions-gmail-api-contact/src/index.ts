@@ -1,9 +1,12 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
-import { google } from "googleapis";
+import { google, gmail_v1 } from "googleapis";
+import type { OAuth2Client, JWT } from "google-auth-library";
 
 admin.initializeApp();
+
+const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send";
 
 export interface AttachmentData {
     content: string;
@@ -13,7 +16,16 @@ export interface AttachmentData {
     contentId?: string;
 }
 
-export interface InitParams {
+interface BaseParams {
+    emailFrom: string;
+    emailTo: string;
+    defaultSubject?: string;
+    reply?: {
+        defaultSubject?: string;
+    };
+}
+
+export interface ServiceAccountInitParams extends BaseParams {
     /**
      * Full Secret Manager resource name of the service account JSON key.
      * Format: `projects/<PROJECT_ID>/secrets/<SECRET_ID>/versions/<VERSION>`
@@ -26,12 +38,16 @@ export interface InitParams {
      * Gmail API sends mail on behalf of this user.
      */
     impersonatedUser: string;
-    emailFrom: string;
-    emailTo: string;
-    defaultSubject?: string;
-    reply?: {
-        defaultSubject?: string;
-    };
+}
+
+export interface OAuthInitParams extends BaseParams {
+    /**
+     * Full Secret Manager resource name of the OAuth credentials JSON.
+     * Format: `projects/<PROJECT_ID>/secrets/<SECRET_ID>/versions/<VERSION>`
+     * The secret payload must be JSON with `client_id`, `client_secret`, and `refresh_token`
+     * obtained via OAuth 2.0 consent (offline access) for the sending mailbox with `gmail.send` scope.
+     */
+    secretVersionName: string;
 }
 
 interface ServiceAccountKey {
@@ -39,21 +55,27 @@ interface ServiceAccountKey {
     private_key: string;
 }
 
-const secretClient = new SecretManagerServiceClient();
-const credentialsCache = new Map<string, ServiceAccountKey>();
+interface OAuthCredentials {
+    client_id: string;
+    client_secret: string;
+    refresh_token: string;
+}
 
-async function loadServiceAccount(secretName: string): Promise<ServiceAccountKey> {
-    const cached = credentialsCache.get(secretName);
+const secretClient = new SecretManagerServiceClient();
+const secretCache = new Map<string, unknown>();
+
+async function loadSecretJson<T>(secretVersionName: string): Promise<T> {
+    const cached = secretCache.get(secretVersionName);
     if (cached) {
-        return cached;
+        return cached as T;
     }
-    const [version] = await secretClient.accessSecretVersion({ name: secretName });
+    const [version] = await secretClient.accessSecretVersion({ name: secretVersionName });
     const payload = version.payload?.data?.toString();
     if (!payload) {
-        throw new Error(`empty secret payload for ${secretName}`);
+        throw new Error(`empty secret payload for ${secretVersionName}`);
     }
-    const parsed = JSON.parse(payload) as ServiceAccountKey;
-    credentialsCache.set(secretName, parsed);
+    const parsed = JSON.parse(payload) as T;
+    secretCache.set(secretVersionName, parsed);
     return parsed;
 }
 
@@ -94,48 +116,79 @@ function buildRawMessage(opts: { from: string; to: string; subject: string; body
     return Buffer.from(message).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-export function handle(params: InitParams): Function {
+type GmailAuth = JWT | OAuth2Client;
+
+async function sendThroughGmail(
+    auth: GmailAuth,
+    params: BaseParams,
+    req: {
+        body: string;
+        subject?: string;
+        replyBody?: string;
+        replyTo?: string;
+        replySubject?: string;
+        attachments?: AttachmentData[];
+    },
+): Promise<void> {
+    const gmail = google.gmail({ version: "v1", auth: auth as gmail_v1.Options["auth"] });
+    const send = (raw: string) =>
+        gmail.users.messages.send({
+            userId: "me",
+            requestBody: { raw },
+        });
+    await send(
+        buildRawMessage({
+            from: params.emailFrom,
+            to: params.emailTo,
+            subject: req.subject || params.defaultSubject || "",
+            body: req.body,
+            attachments: req.attachments,
+        }),
+    );
+    if (params.reply && req.replyBody && req.replyTo) {
+        await send(
+            buildRawMessage({
+                from: params.emailFrom,
+                to: req.replyTo,
+                subject: req.replySubject || params.reply.defaultSubject || "",
+                body: req.replyBody,
+            }),
+        );
+    }
+}
+
+function asHandler(handler: (req: any) => Promise<void>): Function {
     return functions.https.onCall(async (req) => {
-        const { body, subject, replyBody, replyTo, replySubject, attachments } = req.data;
+        const { body } = req.data;
         if (!body) {
             throw new functions.https.HttpsError("invalid-argument", "missing email/name/body");
         }
         try {
-            const credentials = await loadServiceAccount(params.secretVersionName);
-            const auth = new google.auth.JWT({
-                email: credentials.client_email,
-                key: credentials.private_key,
-                scopes: ["https://www.googleapis.com/auth/gmail.send"],
-                subject: params.impersonatedUser,
-            });
-            const gmail = google.gmail({ version: "v1", auth });
-            await gmail.users.messages.send({
-                userId: "me",
-                requestBody: {
-                    raw: buildRawMessage({
-                        from: params.emailFrom,
-                        to: params.emailTo,
-                        subject: subject || params.defaultSubject || "",
-                        body,
-                        attachments,
-                    }),
-                },
-            });
-            if (params.reply && replyBody && replyTo) {
-                await gmail.users.messages.send({
-                    userId: "me",
-                    requestBody: {
-                        raw: buildRawMessage({
-                            from: params.emailFrom,
-                            to: replyTo,
-                            subject: replySubject || params.reply.defaultSubject || "",
-                            body: replyBody,
-                        }),
-                    },
-                });
-            }
+            await handler(req);
         } catch (e) {
             throw new functions.https.HttpsError("failed-precondition", e as string);
         }
+    });
+}
+
+export function handleWithServiceAccount(params: ServiceAccountInitParams): Function {
+    return asHandler(async (req) => {
+        const credentials = await loadSecretJson<ServiceAccountKey>(params.secretVersionName);
+        const auth = new google.auth.JWT({
+            email: credentials.client_email,
+            key: credentials.private_key,
+            scopes: [GMAIL_SEND_SCOPE],
+            subject: params.impersonatedUser,
+        });
+        await sendThroughGmail(auth, params, req.data);
+    });
+}
+
+export function handleWithOAuth(params: OAuthInitParams): Function {
+    return asHandler(async (req) => {
+        const credentials = await loadSecretJson<OAuthCredentials>(params.secretVersionName);
+        const auth = new google.auth.OAuth2(credentials.client_id, credentials.client_secret);
+        auth.setCredentials({ refresh_token: credentials.refresh_token });
+        await sendThroughGmail(auth, params, req.data);
     });
 }
