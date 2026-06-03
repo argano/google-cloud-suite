@@ -302,4 +302,67 @@ describe("handleWithOAuth", () => {
         });
         await expect(fn({ data: { body: "x" } }, {} as any)).rejects.toThrow();
     });
+
+    it("uses fromName to build RFC 2047 encoded From header", async () => {
+        const fn = handleWithOAuth({
+            secretVersionName: "oauth-5",
+            emailFrom: "contact@example.com",
+            emailTo: "ops@example.com",
+            fromName: "Arganoお問い合わせ",
+            defaultSubject: "Hello",
+        });
+        await fn({ data: { body: "b" } }, {} as any);
+        const decoded = decodeRaw(sendMock.mock.calls[0][0].requestBody.raw);
+        const expectedName = `=?UTF-8?B?${Buffer.from("Arganoお問い合わせ").toString("base64")}?=`;
+        expect(decoded).toContain(`From: ${expectedName} <contact@example.com>`);
+    });
+
+    it("falls back to top-level fromName for reply when reply.fromName not set", async () => {
+        const fn = handleWithOAuth({
+            secretVersionName: "oauth-6",
+            emailFrom: "f@x",
+            emailTo: "t@x",
+            fromName: "送信者",
+            reply: { defaultSubject: "RE" },
+        });
+        await fn(
+            { data: { body: "m", replyBody: "r", replyTo: "u@x" } },
+            {} as any,
+        );
+        const decoded = decodeRaw(sendMock.mock.calls[1][0].requestBody.raw);
+        const expectedName = `=?UTF-8?B?${Buffer.from("送信者").toString("base64")}?=`;
+        expect(decoded).toContain(`From: ${expectedName} <f@x>`);
+    });
+
+    it("uses reply.fromName over top-level fromName for reply mail", async () => {
+        const fn = handleWithOAuth({
+            secretVersionName: "oauth-7",
+            emailFrom: "f@x",
+            emailTo: "t@x",
+            fromName: "問い合わせ受付",
+            reply: { defaultSubject: "RE", fromName: "Arganoサポート" },
+        });
+        await fn(
+            { data: { body: "m", replyBody: "r", replyTo: "u@x" } },
+            {} as any,
+        );
+        const mainDecoded = decodeRaw(sendMock.mock.calls[0][0].requestBody.raw);
+        const replyDecoded = decodeRaw(sendMock.mock.calls[1][0].requestBody.raw);
+        const mainName = `=?UTF-8?B?${Buffer.from("問い合わせ受付").toString("base64")}?=`;
+        const replyName = `=?UTF-8?B?${Buffer.from("Arganoサポート").toString("base64")}?=`;
+        expect(mainDecoded).toContain(`From: ${mainName} <f@x>`);
+        expect(replyDecoded).toContain(`From: ${replyName} <f@x>`);
+    });
+
+    it("emits bare address when fromName is not given", async () => {
+        const fn = handleWithOAuth({
+            secretVersionName: "oauth-8",
+            emailFrom: "f@x",
+            emailTo: "t@x",
+        });
+        await fn({ data: { body: "b" } }, {} as any);
+        const decoded = decodeRaw(sendMock.mock.calls[0][0].requestBody.raw);
+        expect(decoded).toContain("From: f@x");
+        expect(decoded).not.toMatch(/From: =\?UTF-8\?B/);
+    });
 });
