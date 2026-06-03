@@ -1,6 +1,6 @@
 {
   "name": "@google-cloud-suite/cloud-functions-zip-archive",
-  "version": "0.0.37",
+  "version": "0.1.0",
   "description": "@google-cloud-suite/cloud-functions-zip-archive",
   "main": "build/index.js",
   "files": [
@@ -17,7 +17,7 @@
   "author": "Argano Inc.",
   "license": "MIT",
   "devDependencies": {
-    "@google-cloud-suite/dev-tools": "^0.0.37",
+    "@google-cloud-suite/dev-tools": "^0.1.0",
     "@types/archiver": "^6.0.3",
     "@types/csprng": "^0.1.1",
     "@types/uuid": "^10.0.0"

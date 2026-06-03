@@ -1,11 +1,12 @@
 {
   "name": "@google-cloud-suite/dev-tools",
-  "version": "0.0.37",
+  "version": "0.1.0",
   "description": "@google-cloud-suite/dev-tools",
   "scripts": {},
   "author": "Argano Inc.",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^20.17.10",
     "@typescript-eslint/eslint-plugin": "^8.18.1",
     "@typescript-eslint/parser": "^8.18.1",
     "del-cli": "^6.0.0",
@@ -15,8 +16,7 @@
     "npm-run-all2": "^7.0.2",
     "prettier": "^3.4.2",
     "typescript": "~5.7.2",
-    "vitest": "^4.1.7",
-    "@types/node": "^20.17.10"
+    "vitest": "^4.1.7"
   },
   "private": true
 }

@@ -1,6 +1,6 @@
 {
   "name": "@google-cloud-suite/firebase-functions-gmail-api-contact",
-  "version": "0.0.37",
+  "version": "0.1.0",
   "description": "@google-cloud-suite/firebase-functions-gmail-api-contact",
   "main": "build/index.js",
   "files": [
@@ -17,7 +17,7 @@
   "author": "Argano Inc.",
   "license": "MIT",
   "devDependencies": {
-    "@google-cloud-suite/dev-tools": "^0.0.37"
+    "@google-cloud-suite/dev-tools": "^0.1.0"
   },
   "dependencies": {
     "@google-cloud/secret-manager": "^6.1.2",
