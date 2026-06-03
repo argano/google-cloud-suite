@@ -1,6 +1,6 @@
 {
   "name": "@google-cloud-suite/firebase-functions-gmail-api-contact",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "@google-cloud-suite/firebase-functions-gmail-api-contact",
   "main": "build/index.js",
   "files": [

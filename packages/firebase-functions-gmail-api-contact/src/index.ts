@@ -19,9 +19,11 @@ export interface AttachmentData {
 interface BaseParams {
     emailFrom: string;
     emailTo: string;
+    fromName?: string;
     defaultSubject?: string;
     reply?: {
         defaultSubject?: string;
+        fromName?: string;
     };
 }
 
@@ -83,9 +85,10 @@ function encodeHeader(value: string): string {
     return `=?UTF-8?B?${Buffer.from(value).toString("base64")}?=`;
 }
 
-function buildRawMessage(opts: { from: string; to: string; subject: string; body: string; attachments?: AttachmentData[] }): string {
-    const { from, to, subject, body, attachments } = opts;
-    const headers = [`From: ${from}`, `To: ${to}`, `Subject: ${encodeHeader(subject)}`, "MIME-Version: 1.0"];
+function buildRawMessage(opts: { from: string; fromName?: string; to: string; subject: string; body: string; attachments?: AttachmentData[] }): string {
+    const { from, fromName, to, subject, body, attachments } = opts;
+    const fromHeader = fromName ? `${encodeHeader(fromName)} <${from}>` : from;
+    const headers = [`From: ${fromHeader}`, `To: ${to}`, `Subject: ${encodeHeader(subject)}`, "MIME-Version: 1.0"];
     let message: string;
     if (attachments && attachments.length > 0) {
         const boundary = `boundary_${Date.now().toString(16)}_${Math.random().toString(16).slice(2)}`;
@@ -139,6 +142,7 @@ async function sendThroughGmail(
     await send(
         buildRawMessage({
             from: params.emailFrom,
+            fromName: params.fromName,
             to: params.emailTo,
             subject: req.subject || params.defaultSubject || "",
             body: req.body,
@@ -149,6 +153,7 @@ async function sendThroughGmail(
         await send(
             buildRawMessage({
                 from: params.emailFrom,
+                fromName: params.reply.fromName || params.fromName,
                 to: req.replyTo,
                 subject: req.replySubject || params.reply.defaultSubject || "",
                 body: req.replyBody,
